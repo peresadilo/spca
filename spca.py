@@ -11,6 +11,35 @@ import pandas as pd
 # (5) Normalize V
 # After those 5 steps, we also want to compute some measures like number of nonzero loadings, variance and cumulative variance. We also need to think how we want
 # to visualize the SPCA outcomes for the gene dataset, since we can't simply show ~16,000 loadings
+#
+
+#
+# notes  Nouri:
+#
+# - Choose k
+# - Choose stopping criterion / threshold value
+# - Do we want to save intermediate results?
+# - Choose lambda / try several options for tuning?
+#
+# Pseudocode:
+#
+# k = 10
+# V = loadings of the first k PCs # calculated separately
+# A[0] = V
+# difference = 10
+# threshold = 0.01
+# i = 0
+#
+# while difference < threshold:
+#     B = np.zeros(k) # initialise B
+#     for j in range(1,k):
+#         B[j] = elasticnetsolver( A[j] )
+#     SVD = U @ D @ np.transpose(V) # = np.transpose(X) @ X @ B
+#     A[i+1] = U @ np.transpose(V)
+#     difference = A[i+1] - A[i]0
+#     i += 1
+#
+# normalized_loadings = B / np.linalg.norm(B)
 
 class Spca:
     
