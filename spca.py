@@ -22,11 +22,15 @@ class Spca:
         difference = 10
         threshold = 0.01
         i = 0
+        k = 6
 
         while difference < threshold:
             B = np.zeros(k) # initialise B
             for j in range(1,k):
                 B[j] = elasticnet.enetoptimizer(self, alpha, X, maxit, l1)( A[j] )
+                # Built in optimizer
+                # B[j] =  elastic_net_solver = ElasticNet(alpha=alphas[i])
+            #U, S, Vh = np.linalg.svd((X.T @ X) @ B)
             SVD = U @ D @ np.transpose(V) # = np.transpose(X) @ X @ B
             A[i+1] = U @ np.transpose(V)
             difference = A[i+1] - A[i]
