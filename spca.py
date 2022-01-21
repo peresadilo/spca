@@ -18,7 +18,10 @@ class Spca:
         pass
 
     def SPCAalgo(V):
+
+        A =  np.zeros( (10000, 13) )
         A[0] = V
+
         difference = 10
         threshold = 0.01
         i = 0
