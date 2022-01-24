@@ -14,12 +14,13 @@ def main():
     #normalized_result = Spca.SPCAalgo(firstloadings)
     #print(normalized_result)
 
-    difference = 0.001
-    threshold = 0.1
-    i = 0
-    k = 6
-    maxit = 10000
-
+    difference = 10 # Intial diff has to > threshold
+    threshold = 0.1 # Random default value
+    i = 0 # Initialize i
+    k = 6 # Default value from paper
+    maxit = 10000 # Random default value
+    lambda1 = np.array[0.06, 0.16, 0.1, 0.5, 0.5, 0.5] 6 # Default value from paper
+   
     A =  np.zeros((maxit, len(firstloadings)))
     A[0] = firstloadings
 
@@ -31,17 +32,20 @@ def main():
             #print(B[i][j])
 
         # Which version of equation 3 to use?
-        SVD = np.linalg.svd((X.T @ X) @ B) # How to define X? Grab from elasticnet? Is part of the elasticnet equation, but also X^t@X is the covariance matrix?
-        SVD = np.linalg.svd(U @ D @ np.transpose(V)) # = np.transpose(X) @ X @ B
-        
+        #SVD = np.linalg.svd((X.T @ X) @ B) # How to define X? Grab from elasticnet? Is part of the elasticnet equation, but also X^t@X is the covariance matrix?
+        #SVD = np.linalg.svd(U @ D @ np.transpose(V)) # = np.transpose(X) @ X @ B
+        # Correlation matrix * vector 
+	    SVD = pitprops * B[i]
         A[i+1] = U @ np.transpose(V)
-        difference = A[i+1] - A[i] # Difference of two vectors? Or sum of differences over each corresponding element?
+        difference = np.linalg.norm(A[i+1]-A[i]) # Difference of two vectors? Or sum of differences over each corresponding element?
         i += 1
         #print(B[i][j])
 
     #normalized_loadings = B / np.linalg.norm(B)
     #print(normalized_loadings)
 
-
-if __name__ == '__main__':
+# Open questions:
+# Eerste 6 loadings? 6x13 of 6x1?
+# Hoe SVD van geniedata in equation 3 berekenen?
+if _name_ == '_main_':
     main()
