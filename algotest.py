@@ -13,48 +13,45 @@ def main():
     pitprops = pd.read_csv("data/pitprops.csv", index_col=0) 
     eigenvalues, eigenvectors = np.linalg.eig(pitprops)
 
-    eigenvalues = eigenvalues.argsort()[::-1]
-    eigenvectors = eigenvectors.argsort()[::-1]
-
-    eigenvalues = eigenvalues
-    eigenvectors = eigenvectors
+    eigenvalues = eigenvalues[eigenvalues.argsort()[::-1]]
+    eigenvectors = eigenvectors[eigenvalues.argsort()[::-1]]
 
     Csqrt = (eigenvectors * eigenvalues**0.5) @ eigenvectors.T
 
     difference = 1 # Intial diff has to > threshold
     difference_b = 1
-    threshold = 1e-6 # Random default value
+    threshold = 1e-8 # Random default value
     i = 0 # Initialize i
     k = 6 # Default value from paper
-    maxit = 1000 # Random default value
-    lambda1 = np.array([0.06, 0.16, 0.1, 0.5, 0.5, 0.5]) # Default value from paper
-    lambda1 = lambda1
+    maxit = 10000 # Random default value
+    lambda1 = np.array([0.06, 0.16, 0.1, 0.5, 0.5, 0.5])
 
     Atemp = eigenvectors[:, :k]
 
     B = np.zeros((10600, 13))
     B_temp = np.zeros((k,13))
 
-    #while difference > threshold and difference_b > threshold and i < maxit:
-    while i < maxit:
+    while difference > threshold and difference_b > threshold and i < maxit:
         for j in range(0,k):
-            elastic_net_solver = ElasticNet(alpha=lambda1[j], l1_ratio=0.5, fit_intercept=False, max_iter=1e6).fit(Csqrt, Csqrt @ Atemp[:, j])
+            elastic_net_solver = ElasticNet(alpha=lambda1[j], l1_ratio=0.001, fit_intercept=False, max_iter=1e6).fit(Csqrt, Csqrt @ Atemp[:, j])
             B_temp[j] = np.array(elastic_net_solver.coef_)
-        B[i:(i+k)] = B_temp
+        B[(i*k):((i*k)+k)] = B_temp
 
-        U, D, vh = np.linalg.svd((pitprops.T @ pitprops) @ np.transpose(B[i:(i+k)]))
+        U, D, vh = np.linalg.svd((pitprops.T @ pitprops) @ np.transpose(B[(i*k):((i*k)+k)]))
         U =  U[:, :k]
         vh = vh[:k]
         difference = np.linalg.norm((U @ np.transpose(vh))-Atemp)
-        difference_b = 1 if i < 10 else np.linalg.norm((B[i:(i+k)])-(B[(i-6):(i+k-6)]))
+        difference_b = 1 if i < 7 else np.linalg.norm((B[(i*k):((i*k)+k)])-(B[((i*k)-6):((i*k)+k-6)]))
         Atemp = (U @ np.transpose(vh))
-        print(difference_b)
         i += 1
-            
-    print("Optimization terminated succesfully \n")
+    
+    if i >= maxit:
+        print("Optimization terminated because maximum iteration is reached")
+    else:
+        print("Optimization terminated succesfully due to convergence in parameters \n")
 
     print("Normalized Loadings")
-    normalized_loadings = B[i:(i+6)] / np.linalg.norm(B[i:(i+6)])
+    normalized_loadings = B[((i-1)*k):(((i-1)*k)+k)] / np.linalg.norm(B[((i-1)*k):(((i-1)*k)+k)])
     print(normalized_loadings)
 
 if __name__ == '__main__':
