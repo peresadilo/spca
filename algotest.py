@@ -5,6 +5,18 @@ from sklearn.datasets import make_regression
 import pandas as pd
 import numpy as np
 
+# To-Do
+# - Order eigenvalues and eigenvectors
+# - Change loadings from 6 to 13
+# - Check whether difference should be based on B, A and B or only A
+# - Check calculation of lambda's
+#
+# Then;
+# - Fix code layout (i.e. transfer algotest.py to notebook and class)
+# - PEP8
+# - Implement gene dataset
+# - Implement self-built elasticnet optimizer 
+
 def main():
     pitprops = pd.read_csv("data/pitprops.csv", index_col=0) 
     eigenvalues, eigenvectors = np.linalg.eig(pitprops)
