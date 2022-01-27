@@ -1,47 +1,61 @@
+from sklearn.linear_model import ElasticNet
+import elasticnet
 import numpy as np
 import pandas as pd
 
-# This class will be used for all main computations w.r.t. SPCA; Following Zou, Hastie and Tibshirani (2006), we can divide the SPCA algorithm in 5 different steps;
-# (1) Define A using V; here, V are the loadings of the first k PCs. Depending on the dataset we can calculate V by using the single value decomposition 
-# (when we have the full dataset) or by using the eigen decomposition (in case we only have the correlation matrix). Both the SVD and ED are available in Numpy
-# (2) Solve the elastic net problem given in Zou, Hastie and Tibshirani (2006); we can choose here to either program an elasticnet optimizer ourselves (should be
-# doable and a nice challenge) or use the built-in ElasticNet function from scikit-learn
-# (3) Compute B using the SVD from Zou, Hastie and Tibshirani (2006), then update A using A=UV^T
-# (4) Repeat 2-3 until convergence
-# (5) Normalize V
-# After those 5 steps, we also want to compute some measures like number of nonzero loadings, variance and cumulative variance. We also need to think how we want
-# to visualize the SPCA outcomes for the gene dataset, since we can't simply show ~16,000 loadings
+def pre_estimation(X):
+    """
+    Function used in sparcepca() for calculating the eigenvalues and eigenvectors of X, and 
+    calculating Y for estimation using elasticnet. Requires a matrix X as input, and returns the 
+    vectors Y and eigenvalues, and the matrix eigenvectors
+    """
+    eigenvalues, eigenvectors = np.linalg.eig(X)
+    eigenvalues = eigenvalues[eigenvalues.argsort()[::-1]]
+    eigenvectors = eigenvectors[eigenvalues.argsort()[::-1]]
+    Y = (eigenvectors * eigenvalues ** 0.5) @ eigenvectors.T
+    return Y, eigenvalues, eigenvectors
 
-class Spca:
-    
-    def __init__(self) -> None:
-        pass
+def estimation_output(A, B, fault=0):
+    """
+    Used for formatting and outputing the generated coefficients to the user. Requires the
+    parameter vectors A (weights) and B (loadings) or a integer "fault" as input, returns either
+    a string with an error message or the vectors A and B in correct format as output.
+    """
+    if fault == 0:
+        normalized_loadings = (B / np.linalg.norm(B)).T
+        return A, normalized_loadings
+    elif fault == 1:
+        return "Optimization terminated because maximum iteration is reached, thus estimation did \
+                not converge."
 
-    def SPCAalgo(V):
+def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold):
+    """
+    Main function used for performing the SPCA algorithm proposed by Zou, Hastie, and 
+    Tibshirani (2006). Requires a matrix X, lambda1 and lambda2 as l-norms, k as # of
+    PCs, max_iteration as maximum number of iterations, and threshold as threshold for difference.
+    Returns two matrices in case of correct estimation; A being the matrix of weights and B being
+    the loadings matrix. In case of estimation error, returns a string containing the issue.
+    """
+    Y, eigenvalues, eigenvectors = pre_estimation(X)
+    i, difference_a, difference_b = 0, 1, 1
+    A_temp = eigenvectors[:, :k]
+    B_temp = np.zeros((k, eigenvalues.shape[0]))
+    B = np.zeros(((max_iteration*100), eigenvalues.shape[0])) 
 
-        A =  np.zeros( (10000, 13) )
-        A[0] = V
-
-        difference = 10
-        threshold = 0.01
-        i = 0
-        k = 6
-
-        while difference < threshold:
-            B = np.zeros(k) # initialise B
-            for j in range(1,k):
-                B[j] = elasticnet.enetoptimizer(self, alpha, X, maxit, l1)( A[j] )
-                # Built in optimizer
-                # B[j] =  elastic_net_solver = ElasticNet(alpha=alphas[i])
-            #U, S, Vh = np.linalg.svd((X.T @ X) @ B)
-            SVD = U @ D @ np.transpose(V) # = np.transpose(X) @ X @ B
-            A[i+1] = U @ np.transpose(V)
-            difference = A[i+1] - A[i]
-            i += 1
-
-        normalized_loadings = B / np.linalg.norm(B)
-
-        return normalized_loadings
-
-
-
+    while difference_a > threshold and difference_b > threshold and i < max_iteration:
+        for j in range(0,k):
+            elastic_net_solver = ElasticNet(alpha=lambda2[j], l1_ratio=lambda1, 
+            fit_intercept=False, max_iter=max_iteration).fit(Y, Y @ A_temp[:, j])
+            B_temp[j] = np.array(elastic_net_solver.coef_)
+        B[(i*k):((i*k)+k)] = B_temp
+        U, D, vh = np.linalg.svd((X.T @ X) @ np.transpose(B[(i*k):((i*k)+k)]))
+        U =  U[:, :k]
+        vh = vh[:k]
+        difference_a = np.linalg.norm((U @ np.transpose(vh))-A_temp)
+        difference_b = 1 if i<7 else np.linalg.norm((B[(i*k):((i*k)+k)])-(B[((i*k)-6):((i*k)+k-6)]))
+        A_temp = (U @ np.transpose(vh))
+    i += 1
+    if i >= max_iteration:
+        return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)], fault=1)
+    else:
+        return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)])

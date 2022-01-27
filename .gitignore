@@ -2,3 +2,6 @@ __pycache__/
 .idea/
 workspace.code-workspace
 .vscode/
+example.py
+enetex.r
+algotest.py
