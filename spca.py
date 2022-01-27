@@ -44,9 +44,11 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold):
 
     while difference_a > threshold and difference_b > threshold and i < max_iteration:
         for j in range(0,k):
-            elastic_net_solver = ElasticNet(alpha=lambda2[j], l1_ratio=lambda1, 
-            fit_intercept=False, max_iter=max_iteration).fit(Y, Y @ A_temp[:, j])
-            B_temp[j] = np.array(elastic_net_solver.coef_)
+            #elastic_net_solver = ElasticNet(alpha=lambda2[j], l1_ratio=lambda1, 
+            #fit_intercept=False, max_iter=max_iteration).fit(Y, Y @ A_temp[:, j])
+            B_temp[j] = np.array(elasticnet.solver(l2=lambda2[j], l1=lambda1, 
+            X=(Y @ A_temp[:, j]), Y=Y))
+            #B_temp[j] = np.array(elastic_net_solver.coef_)
         B[(i*k):((i*k)+k)] = B_temp
         U, D, vh = np.linalg.svd((X.T @ X) @ np.transpose(B[(i*k):((i*k)+k)]))
         U =  U[:, :k]
@@ -54,7 +56,7 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold):
         difference_a = np.linalg.norm((U @ np.transpose(vh))-A_temp)
         difference_b = 1 if i<7 else np.linalg.norm((B[(i*k):((i*k)+k)])-(B[((i*k)-6):((i*k)+k-6)]))
         A_temp = (U @ np.transpose(vh))
-    i += 1
+        i += 1
     if i >= max_iteration:
         return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)], fault=1)
     else:
