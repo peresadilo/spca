@@ -3,17 +3,22 @@ import numpy as np
 import pandas as pd
 import elasticnet
 
-def pre_estimation(X):
+def pre_estimation(X, type):
     """
     Function used in sparcepca() for calculating the eigenvalues and eigenvectors of X, and 
     calculating Y for estimation using elasticnet. Requires a matrix X as input, and returns the 
     vectors Y and eigenvalues, and the matrix eigenvectors
     """
-    eigenvalues, eigenvectors = np.linalg.eig(X)
-    eigenvalues = eigenvalues[eigenvalues.argsort()[::-1]]
-    eigenvectors = eigenvectors[eigenvalues.argsort()[::-1]]
-    Y = (eigenvectors * eigenvalues ** 0.5) @ eigenvectors.T
-    return Y, eigenvalues, eigenvectors
+    if(type == "data"):
+        U, D, vh = np.linalg.svd(X)
+        Y = (vh.T * D) @ vh
+        return Y, vh
+    else:
+        eigenvalues, eigenvectors = np.linalg.eig(X)
+        eigenvalues = eigenvalues[eigenvalues.argsort()[::-1]]
+        eigenvectors = eigenvectors[eigenvalues.argsort()[::-1]]
+        Y = (eigenvectors * eigenvalues ** 0.5) @ eigenvectors.T
+        return Y, eigenvalues, eigenvectors
 
 def estimation_output(A, B, vh, fault=0):
     """
@@ -28,7 +33,7 @@ def estimation_output(A, B, vh, fault=0):
         return "Optimization terminated because maximum iteration is reached, thus estimation did \
                 not converge."
 
-def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, optimizer="sklearn"):
+def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, type, optimizer="sklearn"):
     """
     Main function used for performing the SPCA algorithm proposed by Zou, Hastie, and 
     Tibshirani (2006). Requires a matrix X, lambda1 and lambda2 as l-norms, k as # of
@@ -38,9 +43,13 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, optimizer="sklea
     of weights and B being the loadings matrix. In case of estimation error, returns a string 
     containing the issue.
     """
-    Y, eigenvalues, eigenvectors = pre_estimation(X)
+    if(type == "data"):
+        Y, eigenvalues = pre_estimation(X, type)
+        A_temp = eigenvalues[:k].T
+    else:
+        Y, eigenvalues, eigenvectors = pre_estimation(X, type)
+        A_temp = eigenvectors[:, :k]
     i, difference_a, difference_b = 0, 1, 1
-    A_temp = eigenvectors[:, :k]
     B_temp = np.zeros((k, eigenvalues.shape[0]))
     B = np.zeros(((max_iteration*100), eigenvalues.shape[0])) 
 
@@ -50,9 +59,11 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, optimizer="sklea
                 elastic_net_solver = ElasticNet(alpha=lambda2[j], l1_ratio=lambda1, 
                 fit_intercept=False, max_iter=max_iteration).fit(Y, Y @ A_temp[:, j])
                 B_temp[j] = np.array(elastic_net_solver.coef_)
+                
             else:
                 B_temp[j] = np.array(elasticnet.solver(l2=lambda2[j], l1=lambda1, 
                 X=(Y @ A_temp[:, j]), Y=Y, A=A_temp[:, j]))
+        print(B_temp)
         B[(i*k):((i*k)+k)] = B_temp
         U, D, vh = np.linalg.svd((X.T @ X) @ np.transpose(B[(i*k):((i*k)+k)]))
         U =  U[:, :k]
