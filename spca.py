@@ -10,8 +10,12 @@ def pre_estimation(X, type):
     vectors Y and eigenvalues, and the matrix eigenvectors
     """
     if(type == "data"):
+        n, p = X.shape
         U, D, vh = np.linalg.svd(X)
+        if(n < p):
+            D = np.hstack((D, np.zeros(p-n)))
         Y = (vh.T * D) @ vh
+        print("Pre-estimation terminated succesfully")
         return Y, vh
     else:
         eigenvalues, eigenvectors = np.linalg.eig(X)
@@ -63,7 +67,6 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, type, optimizer=
             else:
                 B_temp[j] = np.array(elasticnet.solver(l2=lambda2[j], l1=lambda1, 
                 X=(Y @ A_temp[:, j]), Y=Y, A=A_temp[:, j]))
-        print(B_temp)
         B[(i*k):((i*k)+k)] = B_temp
         U, D, vh = np.linalg.svd((X.T @ X) @ np.transpose(B[(i*k):((i*k)+k)]))
         U =  U[:, :k]
