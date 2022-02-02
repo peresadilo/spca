@@ -19,8 +19,12 @@ def variance(X, V):
     X = X.iloc[:, :k]
     sigma = X.T @ X
     Z = V.T @ sigma @ V
+    print(Z.shape)
     variance = np.trace(Z.T @ Z)
-    return variance
+    Z_array = Z.to_numpy()
+    diagonal = Z_array.T @ Z_array
+    diagonal = diagonal.diagonal()
+    return variance, diagonal
     
 def tex_output(tables):
     """

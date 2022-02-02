@@ -24,7 +24,7 @@ def pre_estimation(X, type):
         Y = (eigenvectors * eigenvalues ** 0.5) @ eigenvectors.T
         return Y, eigenvalues, eigenvectors
 
-def estimation_output(A, B, vh, fault=0):
+def estimation_output(A, B, D, vh, fault=0):
     """
     Used for formatting and outputing the generated coefficients to the user. Requires the
     parameter vectors A (weights) and B (loadings) or a integer "fault" as input, returns either
@@ -32,7 +32,7 @@ def estimation_output(A, B, vh, fault=0):
     """
     if fault == 0:
         normalized_loadings = (B / np.linalg.norm(B)).T
-        return A, normalized_loadings, vh
+        return A, normalized_loadings, D, vh
     elif fault == 1:
         return "Optimization terminated because maximum iteration is reached, thus estimation did \
                 not converge."
@@ -77,6 +77,6 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, type, optimizer=
         A_temp = (U @ np.transpose(vh))
         i += 1
     if i >= max_iteration:
-        return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)], vh_out, fault=1)
+        return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)], D, vh_out, fault=1)
     else:
-        return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)], vh_out)
+        return estimation_output(A_temp, B[((i-1)*k):(((i-1)*k)+k)], D, vh_out)
