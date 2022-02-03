@@ -5,6 +5,9 @@ def nonzeroloadings(B):
     """
     This function calculates the number of nonzero loadings. Requires the loadings matrix B, and
     returns the number of nonzero loadings per column.
+    
+    :param B: loading matrix
+    :return: number of nonzero loadings (int)
     """
     nonzero_count = (B != 0).astype(int).sum(axis=0)
     return nonzero_count
@@ -14,6 +17,9 @@ def variance(X, V):
     This function returns the variance (not the adjusted variance) based on the formulas provided
     by Zou, Hastie, and Tibshirani (2006). The function requires the matrices X and V as input,
     and gives the variance as output.
+    :param X: input data
+    :param V: weight data
+    :return: variance, diagonal of the covariance matrix
     """
     k = V.shape[0]
     X = X.iloc[:, :k]

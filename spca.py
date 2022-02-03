@@ -8,6 +8,10 @@ def pre_estimation(X, type):
     Function used in sparcepca() for calculating the eigenvalues and eigenvectors of X, and 
     calculating Y for estimation using elasticnet. Requires a matrix X as input, and returns the 
     vectors Y and eigenvalues, and the matrix eigenvectors
+    
+    :param X: input data
+    :param type: 'data' (original dataset) or 'cov' (covariance matrix) 
+    :return: vector Y, eigenvalues, eigenvectors
     """
     if(type == "data"):
         n, p = X.shape
@@ -29,6 +33,13 @@ def estimation_output(A, B, D, vh, fault=0):
     Used for formatting and outputing the generated coefficients to the user. Requires the
     parameter vectors A (weights) and B (loadings) or a integer "fault" as input, returns either
     a string with an error message or the vectors A and B in correct format as output.
+    
+    :param A: weights matrix
+    :param B: loadings matrix
+    :param D: D matrix from SVD results
+    :param vh: vh matrix from SVD results
+    :param fault: 0 (noncorvergence) or 1 (convergence) 
+    :return: a string with an error message or the vectors A and B in correct format as output.
     """
     if fault == 0:
         normalized_loadings = (B / np.linalg.norm(B)).T
@@ -46,6 +57,17 @@ def sparcepca(X, lambda2, lambda1, k, max_iteration, threshold, type, optimizer=
     self-written optimizer. Returns two matrices in case of correct estimation; A being the matrix 
     of weights and B being the loadings matrix. In case of estimation error, returns a string 
     containing the issue.
+    
+    :param X: input data matrix
+    :param lambda2: L1-regulization (list of values)
+    :param lambda1: L2-regulization (float)
+    :param k: number of components (int)
+    :param max_iteration: maximum number of iterations (int)
+    :param treshold: optimization treshold (float)
+    :param type: data type (cov/data)
+    :param optimizer: sklearn or elasticnet
+    :return: two matrices in case of correct estimation; A being the matrix 
+    of weights and B being the loadings matrix.
     """
     if(type == "data"):
         Y, eigenvalues = pre_estimation(X, type)
