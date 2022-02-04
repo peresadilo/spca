@@ -34,3 +34,11 @@ import utils
 
 spca.sparcepca(X=array, lambda2=list, lambda1=int, k=num, max_iteration=float, threshold=float, type=string)
 ```
+
+### Arguments
+
+| Arguments     | type           | Description  |
+| ------------- |-------------| -----|
+| X     |  |  |
+| lambda2      |       |    |
+| lambda1 |       |    |
