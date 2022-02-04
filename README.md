@@ -10,7 +10,7 @@
 
 Principal Component Analysis (PCA) is a frequently used method in the field of data science for data processing and dimensionality reduction, because of its propensity to simplify complexities in high-dimensional data without disregarding relations and patterns. `spca` is a python implementation of the sparse principal component algorithm, based on the work of Zou, Hastie, and Tibshirani (2006) who propose a method to improve interpretability by introducing sparseness contraints to PCA by implementing elastic net, a convex combination of the ridge and lasso penalties.
 
-The authors of this package are Filipp Peresadilo, Dorus van Schai, Yuting Su and Nouri Mabrouk.
+The authors of this package are Filipp Peresadilo, Dorus van Schaik, Yuting Su and Nouri Mabrouk.
 
 ## Documentation
 
