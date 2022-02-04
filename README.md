@@ -4,7 +4,6 @@
 - [Documentation](#documentation)
 	- [Usage](#usage)
 	- [Arguments](#arguments)
-	- [Return values](#values)
 - [References](#references)
 
 ## Introduction
